@@ -42,10 +42,10 @@ from .configuration_multi_task_dit import MultiTaskDiTConfig
 
 # Conditional import for type checking and lazy loading
 if TYPE_CHECKING or _transformers_available:
-    from transformers import CLIPTextModel, CLIPVisionModel
+    from transformers import AutoModel, CLIPTextModel
 else:
+    AutoModel = None
     CLIPTextModel = None
-    CLIPVisionModel = None
 
 if TYPE_CHECKING or _diffusers_available:
     from diffusers.schedulers.scheduling_ddim import DDIMScheduler
@@ -201,13 +201,18 @@ class MultiTaskDiTPolicy(PreTrainedPolicy):
 # -- Observation Encoders --
 
 
-class CLIPVisionEncoder(nn.Module):
-    """CLIP vision encoder using the CLS token for global image representation."""
+class VisionEncoder(nn.Module):
+    """Vision encoder using the CLS token (last_hidden_state[:, 0]).
+
+    Works with HuggingFace ViT backbones via AutoModel: CLIP-ViT, DINOv2, DINOv3.
+    For DINOv3 the register tokens sit at indices 1..1+num_register_tokens and are
+    skipped automatically since we only read index 0.
+    """
 
     def __init__(self, model_name: str):
         super().__init__()
         self.model_name = model_name
-        self.model = CLIPVisionModel.from_pretrained(self.model_name)
+        self.model = AutoModel.from_pretrained(self.model_name)
         self.num_non_spatial_tokens = 1
         self.embed_dim = self.model.config.hidden_size
 
@@ -269,11 +274,11 @@ class ObservationEncoder(nn.Module):
 
             if config.use_separate_rgb_encoder_per_camera:
                 self.vision_encoders = nn.ModuleList(
-                    [CLIPVisionEncoder(model_name=config.vision_encoder_name) for _ in self.camera_names]
+                    [VisionEncoder(model_name=config.vision_encoder_name) for _ in self.camera_names]
                 )
                 self.vision_encoder = None
             else:
-                self.vision_encoder = CLIPVisionEncoder(model_name=config.vision_encoder_name)
+                self.vision_encoder = VisionEncoder(model_name=config.vision_encoder_name)
                 self.vision_encoders = None
         else:
             self.vision_encoder = None

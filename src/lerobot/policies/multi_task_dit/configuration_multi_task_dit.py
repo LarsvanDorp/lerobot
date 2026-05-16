@@ -68,8 +68,8 @@ class MultiTaskDiTConfig(PreTrainedConfig):
     use_rope: bool = True  # Use Rotary Position Embedding
     rope_base: float = 10000.0  # RoPE base frequency
 
-    # Vision Encoder (CLIP)
-    vision_encoder_name: str = "openai/clip-vit-base-patch16"  # HuggingFace CLIP model
+    # Vision Encoder (HuggingFace AutoModel — e.g. DINOv3 or CLIP)
+    vision_encoder_name: str = "facebook/dinov3-vitl16-pretrain-lvd1689m"
     use_separate_rgb_encoder_per_camera: bool = False  # Separate encoder per camera view
     vision_encoder_lr_multiplier: float = 0.1  # LR multiplier for vision encoder
     image_resize_shape: tuple[int, int] | None = None  # Resize images before crop
@@ -130,11 +130,6 @@ class MultiTaskDiTConfig(PreTrainedConfig):
         if not (0.0 <= self.dropout <= 1.0):
             raise ValueError("dropout must be between 0.0 and 1.0")
 
-        # Vision encoder validation
-        if "clip" not in self.vision_encoder_name.lower():
-            raise ValueError(
-                f"vision_encoder_name must be a CLIP model (contain 'clip'), got '{self.vision_encoder_name}'"
-            )
         if (
             self.image_resize_shape
             and self.image_crop_shape
