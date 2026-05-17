@@ -69,7 +69,7 @@ class MultiTaskDiTConfig(PreTrainedConfig):
     rope_base: float = 10000.0  # RoPE base frequency
 
     # Vision Encoder (HuggingFace AutoModel — e.g. DINOv3 or CLIP)
-    vision_encoder_name: str = "facebook/dinov3-vitl16-pretrain-lvd1689m"
+    vision_encoder_name: str = "facebook/dinov3-vitb16-pretrain-lvd1689m"
     use_separate_rgb_encoder_per_camera: bool = False  # Separate encoder per camera view
     vision_encoder_lr_multiplier: float = 0.1  # LR multiplier for vision encoder
     image_resize_shape: tuple[int, int] | None = None  # Resize images before crop
